@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Earn BD</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .mobile-screen {
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 840px;
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ---------------- WELCOME / INTRO SCREEN WITH ANIMATION ---------------- */
+        #welcome-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 30px 24px;
+            background: linear-gradient(180deg, #eef2ff 0%, #ffffff 100%);
+            text-align: center;
+        }
+
+        .welcome-img-wrapper {
+            width: 220px;
+            height: 220px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(79, 70, 229, 0.25);
+            margin-bottom: 28px;
+            border: 4px solid #ffffff;
+            animation: floatAndGlow 3.5s ease-in-out infinite, fadeInScale 0.8s ease-out;
+        }
+
+        .welcome-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @keyframes floatAndGlow {
+            0%, 100% {
+                transform: translateY(0px);
+                box-shadow: 0 15px 35px rgba(79, 70, 229, 0.25);
+            }
+            50% {
+                transform: translateY(-12px);
+                box-shadow: 0 25px 45px rgba(124, 58, 237, 0.35);
+            }
+        }
+
+        @keyframes fadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.85);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideUpFade {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-text-box {
+            animation: slideUpFade 0.9s ease-out;
+            width: 100%;
+        }
+
+        .welcome-text-box h1 {
+            font-size: 26px;
+            color: #4f46e5;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .welcome-text-box p {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+
+        .btn-start-journey {
+            width: 100%;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .btn-start-journey:active {
+            transform: scale(0.97);
+        }
+
+        .welcome-auth-links {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .btn-outline-auth {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1.5px solid #4f46e5;
+            background: #ffffff;
+            color: #4f46e5;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-outline-auth:hover {
+            background: #eef2ff;
+        }
+
+        /* ---------------- AUTH PAGES ---------------- */
+        .auth-container {
+            padding: 30px 24px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-header h2 {
+            color: #4f46e5;
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .auth-header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .error-msg {
+            background-color: #fee2e2;
+            color: #dc2626;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+            border: 1px solid #fca5a5;
+        }
+
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .input-field {
+            position: relative;
+        }
+
+        .input-field i.left-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .input-field i.toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .input-field input, .input-field select, .input-field textarea {
+            width: 100%;
+            padding: 12px 40px 12px 42px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-field textarea {
+            resize: none;
+            height: 80px;
+        }
+
+        .input-field select {
+            appearance: none;
+            background-color: white;
+        }
+
+        .input-field input:focus, .input-field select:focus, .input-field textarea:focus {
+            border-color: #4f46e5;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .auth-toggle a {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* ---------------- MAIN APP SCREEN ---------------- */
+        #app-main {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Header Info Card */
+        .user-card {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
+        }
+
+        .user-top {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .avatar-box {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        .avatar-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #ffffff;
+            border: 2px solid white;
+        }
+
+        .upload-icon {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #10b981;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+            border: 1px solid white;
+        }
+
+        .balance-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            padding: 12px 16px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-withdraw-header {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+
+        /* Admin Notice / Update Banner */
+        .admin-notice-card {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 4px solid #f59e0b;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .admin-notice-card h4 {
+            font-size: 14px;
+            color: #b45309;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .admin-notice-card p {
+            font-size: 12px;
+            color: #78350f;
+        }
+
+        /* Task Box Style */
+        .task-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            text-align: center;
+        }
+
+        .gmail-icon-box {
+            width: 65px;
+            height: 65px;
+            background: #fef2f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px auto;
+        }
+
+        .gmail-icon-box i {
+            font-size: 32px;
+            color: #ea4335;
+        }
+
+        .task-rules {
+            background: #fef2f2;
+            border-left: 3px solid #ef4444;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #991b1b;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+        .task-rules ul {
+            margin-left: 18px;
+            margin-top: 4px;
+        }
+
+        /* History Status Badge */
+        .history-item {
+            background: white;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-completed {
+            background: #d1fae5;
+            color: #059669;
+            border-left: 4px solid #10b981;
+        }
+
+        .badge-cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+            border-left: 4px solid #ef4444;
+        }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            height: 65px;
+            background: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 11px;
+            cursor: pointer;
+            gap: 4px;
+            width: 20%;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+        }
+
+        .nav-item.active {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+
+        .profile-info-box {
+            background: white;
+            border-radius: 14px;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .btn-telegram {
+            background: #229ed9;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        /* ---------------- ADMIN TRIGGER BUTTON ---------------- */
+        .admin-trigger-btn {
+            margin-top: 25px;
+            background: #1e293b;
+            color: #38bdf8;
+            border: 1px dashed #38bdf8;
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .admin-trigger-btn:hover {
+            background: #0f172a;
+        }
+
+        /* ---------------- PASSWORD MODAL ---------------- */
+        #password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.8);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .password-box {
+            background: #1e293b;
+            padding: 24px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
+        }
+
+        .password-box h3 {
+            color: #38bdf8;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .password-box input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .password-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .password-buttons button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* ---------------- BIG HIDDEN ADMIN PANEL MODAL ---------------- */
+        #admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0f172a;
+            z-index: 9999;
+            padding: 20px;
+            overflow-y: auto;
+            color: #f8fafc;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 14px;
+        }
+
+        .admin-header h2 {
+            font-size: 18px;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 16px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .admin-card h4 {
+            margin-bottom: 14px;
+            font-size: 15px;
+            color: #38bdf8;
+            border-left: 3px solid #38bdf8;
+            padding-left: 8px;
+        }
+
+        .admin-submission-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .btn-admin-action {
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-screen">
+
+        <!-- ০. ওয়েলকাম ও অ্যানিমেশন পেজ -->
+        <div id="welcome-page">
+            <div class="welcome-img-wrapper">
+                <img src="https://i.ibb.co.com/3m8kq6Ph/file-00000000ee3c821088ab0e7b5e550492.png" alt="Family Earn BD Welcome">
+            </div>
+
+            <div class="welcome-text-box">
+                <h1>Family Earn BD</h1>
+                <p>ঘরে বসে প্রতিদিন সহজ কাজ করে আয় করুন এবং বিকাশ ও নগদে দ্রুত পেমেন্ট নিন।</p>
+
+                <button class="btn-start-journey" onclick="showSignup()">
+                    আপনার যাত্রা শুরু করুন <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+                <div class="welcome-auth-links">
+                    <button class="btn-outline-auth" onclick="showLogin()">
+                        <i class="fa-solid fa-right-to-bracket"></i> লগইন করুন
+                    </button>
+                    <button class="btn-outline-auth" onclick="showSignup()">
+                        <i class="fa-solid fa-user-plus"></i> রেজিস্ট্রেশন
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ১. সাইনআপ পেজ -->
+        <div id="signup-page" class="auth-container">
+            <div class="auth-header">
+                <h2 style="color: #4f46e5; font-size: 26px;">Family Earn BD</h2>
+                <p>নতুন একাউন্ট খুলতে নিচের তথ্যগুলো দিন</p>
+            </div>
+
+            <div id="signup-error" class="error-msg"></div>
+
+            <form onsubmit="handleSignup(event)">
+                <div class="input-group">
+                    <label>আপনার নাম</label>
+                    <div class="input-field">
+                        <i class="fa-regular fa-user left-icon"></i>
+                        <input type="text" id="reg-name" placeholder="পুরো নাম লিখুন" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>মোবাইল নাম্বার</label>
+                    <div class="input-field">
+                        <i class="fa-solid fa-phone left-icon"></i>
+                        <input type="tel" id="reg-phone" placeholder="01XXXXXXXXX" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>ইমেইল অ্যাড্রেস</label>
+                    <div class="input-field">
+                        <i class="fa-regular fa-envelope left-icon"></i>
+                        <input type="email" id="reg-email" placeholder="example@gmail.com" autocomplete="email" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>পাসওয়ার্ড</label>
+                    <div class="input-field">
+                        <i class="fa-solid fa-lock left-icon"></i>
+                        <input type="password" id="reg-pass" placeholder="পাসওয়ার্ড দিন" required>
+                        <i class="fa-solid fa-eye toggle-password" onclick="togglePass('reg-pass', this)"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>কনফার্ম পাসওয়ার্ড</label>
+                    <div class="input-field">
+                        <i class="fa-solid fa-shield-halved left-icon"></i>
+                        <input type="password" id="reg-cpass" placeholder="পাসওয়ার্ড পুনরায় দিন" required>
+                        <i class="fa-solid fa-eye toggle-password" onclick="togglePass('reg-cpass', this)"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">নিবন্ধন করুন</button>
+            </form>
+
+            <div class="auth-toggle">
+                ইতিমধ্যে একাউন্ট আছে? <a href="#" onclick="showLogin()">লগইন করুন</a>
+            </div>
+        </div>
+
+        <!-- ২. লগইন পেজ -->
+        <div id="login-page" class="auth-container">
+            <div class="auth-header">
+                <h2 style="color: #4f46e5; font-size: 26px;">Family Earn BD</h2>
+                <p>আপনার একাউন্টে লগইন করুন</p>
+            </div>
+
+            <div id="login-error" class="error-msg"></div>
+
+            <form onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label>মোবাইল নাম্বার</label>
+                    <div class="input-field">
+                        <i class="fa-solid fa-phone left-icon"></i>
+                        <input type="tel" id="login-phone" placeholder="01XXXXXXXXX" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>পাসওয়ার্ড</label>
+                    <div class="input-field">
+                        <i class="fa-solid fa-lock left-icon"></i>
+                        <input type="password" id="login-pass" placeholder="পাসওয়ার্ড দিন" required>
+                        <i class="fa-solid fa-eye toggle-password" onclick="togglePass('login-pass', this)"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">লগইন করুন</button>
+            </form>
+
+            <div class="auth-toggle">
+                একাউন্ট নেই? <a href="#" onclick="showSignup()">নিবন্ধন করুন</a>
+            </div>
+        </div>
+
+        <!-- ৩. মূল অ্যাপ স্ক্রিন -->
+        <div id="app-main">
+            <div class="content-area">
+
+                <!-- TAB 1: HOME -->
+                <div id="tab-home" class="tab-content active">
+                    <div class="admin-notice-card">
+                        <h4><i class="fa-solid fa-bullhorn"></i> নোটিশ বোর্ড</h4>
+                        <p id="admin-notice-text">Family Earn BD অ্যাপে স্বাগতম! কাজ করুন নিয়মিত পেমেন্ট পান।</p>
+                    </div>
+
+                    <div class="user-card">
+                        <div class="user-top">
+                            <div class="avatar-box">
+                                <img id="user-avatar" src="https://via.placeholder.com/60" class="avatar-img" alt="Profile">
+                                <label for="image-upload" class="upload-icon">
+                                    <i class="fa-solid fa-camera"></i>
+                                </label>
+                                <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="uploadImage(event)">
+                            </div>
+                            <div>
+                                <h3 id="display-name" style="font-size: 18px;">ইউজার</h3>
+                                <p id="display-phone" style="font-size: 12px; opacity: 0.8;">01XXXXXXXXX</p>
+                            </div>
+                        </div>
+
+                        <div class="balance-box">
+                            <div>
+                                <span style="font-size: 12px; opacity: 0.9;">বর্তমান ব্যালেন্স</span>
+                                <h2 id="user-balance">৳ 0.00</h2>
+                            </div>
+                            <button class="btn-withdraw-header" onclick="openWithdrawCard()">
+                                <i class="fa-solid fa-money-bill-transfer"></i> উইথড্র
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- উইথড্র সেকশন -->
+                    <div id="withdraw-card-section" class="task-card" style="display: none; text-align: left;">
+                        <div class="task-header" style="display: flex; gap: 12px; align-items: center; margin-bottom: 10px;">
+                            <i class="fa-solid fa-wallet" style="color: #10b981; font-size: 24px;"></i>
+                            <div>
+                                <h4 style="font-size: 15px; color: #1f2937;">টাকা উইথড্র করুন</h4>
+                                <span style="font-size: 12px; color: #6b7280;">চার্জ: প্রতি উইথড্রতে ৳ ৫০ ফি কাটবে</span>
+                            </div>
+                        </div>
+
+                        <div class="task-rules" style="background: #ecfdf5; border-color: #10b981; color: #065f46;">
+                            <strong>উইথড্র নিয়মাবলী:</strong>
+                            <ul>
+                                <li>সর্বনিম্ন উইথড্র ৳ ৫০০ এবং সর্বোচ্চ ৳ ৫০০০।</li>
+                                <li>যেমন: ৳ ৫০০ তুলতে মোট ৳ ৫৫০ ব্যালেন্স থাকতে হবে।</li>
+                            </ul>
+                        </div>
+
+                        <form onsubmit="handleWithdraw(event)">
+                            <div class="input-group">
+                                <label>পেমেন্ট মেথড সিলেক্ট করুন</label>
+                                <div class="input-field">
+                                    <i class="fa-solid fa-building-columns left-icon"></i>
+                                    <select id="withdraw-method" required>
+                                        <option value="bkash">বিকাশ (Bkash)</option>
+                                        <option value="nagad">নগদ (Nagad)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>বিকাশ/নগদ নম্বর</label>
+                                <div class="input-field">
+                                    <i class="fa-solid fa-mobile-screen left-icon"></i>
+                                    <input type="tel" id="withdraw-number" placeholder="01XXXXXXXXX" required>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>টাকার পরিমাণ (৳ ৫০০ - ৳ ৫০০০)</label>
+                                <div class="input-field">
+                                    <i class="fa-solid fa-bangladeshi-taka-sign left-icon"></i>
+                                    <input type="number" id="withdraw-amount" placeholder="৳ ৫০০" min="500" max="5000" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-primary" style="background: #10b981;">উইথড্র রিকোয়েস্ট পাঠান</button>
+                        </form>
+                    </div>
+
+                    <div class="section-title">টাস্ক (Task)</div>
+                    
+                    <div class="task-card">
+                        <div class="gmail-icon-box">
+                            <i class="fa-brands fa-google"></i>
+                        </div>
+                        <h4 style="font-size: 16px; color: #1f2937; margin-bottom: 4px;">জিমেইল অ্যাকাউন্ট বিক্রি</h4>
+                        <p style="font-size: 13px; color: #6b7280; margin-bottom: 14px;">প্রতিটি সঠিক ফ্রেশ জিমেইলের জন্য পাবেন ৳ ৫.০০</p>
+                        
+                        <button class="btn-primary" onclick="toggleGmailForm()" style="margin-top: 0;">
+                            <i class="fa-solid fa-plus-circle"></i> জিমেইল বিক্রি করুন
+                        </button>
+                    </div>
+
+                    <!-- জিমেইল জমা দেওয়ার ফরম (ছবি আপলোড সহ) -->
+                    <div id="gmail-form-card" class="task-card" style="display: none; text-align: left;">
+                        <h4 style="font-size: 15px; color: #1f2937; margin-bottom: 12px; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px;">
+                            জিমেইল ও প্রুফ ছবি জমা দিন
+                        </h4>
+
+                        <form onsubmit="submitTask(event)">
+                            <div class="input-group">
+                                <label>জিমেইল অ্যাড্রেস (Gmail Address)</label>
+                                <div class="input-field">
+                                    <i class="fa-regular fa-envelope left-icon"></i>
+                                    <input type="email" id="task-gmail-email" placeholder="example@gmail.com" required>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>জিমেইল পাসওয়ার্ড (Password)</label>
+                                <div class="input-field">
+                                    <i class="fa-solid fa-lock left-icon"></i>
+                                    <input type="password" id="task-gmail-pass" placeholder="জিমেইলের পাসওয়ার্ড লিখুন" required>
+                                    <i class="fa-solid fa-eye toggle-password" onclick="togglePass('task-gmail-pass', this)"></i>
+                                </div>
+                            </div>
+
+                            <!-- প্রুফ ছবি আপলোড অপশন -->
+                            <div class="input-group">
+                                <label><i class="fa-solid fa-image"></i> কাজের প্রুফ স্ক্রিনশট বা ছবি তুলুন</label>
+                                <input type="file" id="task-proof-image" accept="image/*" required style="width: 100%; padding: 10px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 13px; background: #fff;">
+                            </div>
+
+                            <div class="task-rules">
+                                <strong>⚠️ সতর্কতা বার্তা & নিয়মাবলী:</strong>
+                                <ul>
+                                    <li>অবশ্যই জিমেইলে <b>2-Step Verification OFF (বন্ধ)</b> থাকতে হবে।</li>
+                                    <li>সঠিক স্ক্রিনশট বা ছবি আপলোড না করলে পেমেন্ট দেওয়া হবে না।</li>
+                                </ul>
+                            </div>
+
+                            <button type="submit" class="btn-primary" style="padding: 12px;">জমা দিন (Submit Task)</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TAB 2: TASK -->
+                <div id="tab-task" class="tab-content">
+                    <div class="section-title">সকল উপলব্ধ কাজ</div>
+                    <div id="dynamic-tasks-container"></div>
+                </div>
+
+                <!-- TAB 3: HISTORY -->
+                <div id="tab-history" class="tab-content">
+                    <div class="section-title">টাস্ক ও উইথড্র ইতিহাস</div>
+                    <div id="history-list">
+                        <p id="no-history" style="font-size: 13px; color: #9ca3af; text-align: center; margin-top: 30px;">এখনো কোনো রেকর্ড পাওয়া যায়নি।</p>
+                    </div>
+                </div>
+
+                <!-- TAB 4: HELP (Telegram Support) -->
+                <div id="tab-help" class="tab-content">
+                    <div class="section-title">সাহায্য ও সাপোর্ট</div>
+                    <div class="profile-info-box">
+                        <p style="font-size: 13px; color: #4b5563; margin-bottom: 15px;">আপনার কোনো সমস্যা বা প্রশ্ন থাকলে সরাসরি আমাদের টেলিগ্রাম গ্রুপে যোগাযোগ করুন।</p>
+                        
+                        <a href="https://t.me/+CtCIFLOiDA9kZGNl" target="_blank" class="btn-telegram">
+                            <i class="fa-brands fa-telegram" style="font-size: 20px;"></i> 
+                            Telegram Group
+                        </a>
+                    </div>
+                </div>
+
+                <!-- TAB 5: PROFILE -->
+                <div id="tab-profile" class="tab-content">
+                    <div class="section-title">আমার প্রোফাইল</div>
+                    <div class="profile-info-box">
+                        <div class="info-row">
+                            <span style="color: #6b7280;">নাম:</span>
+                            <strong id="prof-name">-</strong>
+                        </div>
+                        <div class="info-row">
+                            <span style="color: #6b7280;">ফোন নম্বর:</span>
+                            <strong id="prof-phone">-</strong>
+                        </div>
+                        <div class="info-row">
+                            <span style="color: #6b7280;">ইমেইল:</span>
+                            <strong id="prof-email">-</strong>
+                        </div>
+                        <div class="info-row">
+                            <span style="color: #6b7280;">মোট ইনকাম:</span>
+                            <strong id="prof-balance" style="color: #10b981;">৳ 0.00</strong>
+                        </div>
+                    </div>
+                    <br>
+                    <button class="btn-primary" onclick="logout()" style="background: #ef4444;">লগআউট করুন</button>
+
+                    <!-- অ্যাডমিন লগইন বাটন -->
+                    <div class="admin-trigger-btn" onclick="openPasswordModal()">
+                        <i class="fa-solid fa-user-gear"></i> ⚙️ Admin Login (অ্যাডমিন প্যানেল)
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- নেভিগেশন বার -->
+            <div class="bottom-nav">
+                <div class="nav-item active" onclick="switchTab('home', this)">
+                    <i class="fa-solid fa-house"></i>
+                    <span>হোম</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('task', this)">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>টাস্ক</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('history', this)">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>হিস্ট্রি</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('help', this)">
+                    <i class="fa-solid fa-headset"></i>
+                    <span>হেল্প</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('profile', this)">
+                    <i class="fa-regular fa-user"></i>
+                    <span>প্রোফাইল</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ---------------- CUSTOM PASSWORD POPUP MODAL ---------------- -->
+    <div id="password-modal">
+        <div class="password-box">
+            <h3>অ্যাডমিন পাসওয়ার্ড দিন</h3>
+            <input type="password" id="admin-pass-input" placeholder="পাসওয়ার্ড লিখুন">
+            <div class="password-buttons">
+                <button onclick="closePasswordModal()" style="background: #475569; color: white;">বাতিল</button>
+                <button onclick="checkAdminPassword()" style="background: #38bdf8; color: #0f172a;">প্রবেশ করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ---------------- BIG HIDDEN ADMIN PANEL MODAL ---------------- -->
+    <div id="admin-modal">
+        <div class="admin-header">
+            <h2><i class="fa-solid fa-user-shield"></i> সিক্রেট অ্যাডমিন ড্যাশবোর্ড</h2>
+            <button onclick="closeAdminModal()" style="background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight:bold; cursor: pointer;">বন্ধ করুন</button>
+        </div>
+
+        <!-- ১. ইউজার ব্যালেন্স যোগ বা কাট করার কন্ট্রোল -->
+        <div class="admin-card">
+            <h4><i class="fa-solid fa-wallet"></i> ইউজারের ব্যালেন্স ম্যানেজমেন্ট</h4>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                <input type="tel" id="admin-bal-phone" placeholder="মোবাইল নাম্বার (01XXXXXXXXX)" style="padding: 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:white;">
+                <input type="number" id="admin-bal-amount" placeholder="টাকার পরিমাণ (৳)" style="padding: 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:white;">
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-admin-action" onclick="modifyUserBalance('add')" style="background: #10b981; color: white; flex: 1; padding: 10px;">টাকা যোগ করুন</button>
+                    <button class="btn-admin-action" onclick="modifyUserBalance('deduct')" style="background: #ef4444; color: white; flex: 1; padding: 10px;">টাকা কেটে নিন</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ২. ইউজার ব্যান কন্ট্রোল -->
+        <div class="admin-card">
+            <h4><i class="fa-solid fa-user-slash"></i> ইউজার ব্যান / আনব্যান</h4>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <input type="tel" id="admin-user-phone-input" placeholder="মোবাইল নাম্বার (01XXXXXXXXX)" style="flex:1; padding: 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:white;">
+                <button class="btn-admin-action" onclick="toggleUserBanStatus(true)" style="background: #ef4444; color: white;">ব্যান</button>
+                <button class="btn-admin-action" onclick="toggleUserBanStatus(false)" style="background: #10b981; color: white;">অ্যাক্টিভ</button>
+            </div>
+        </div>
+
+        <!-- ৩. নোটিশ বোর্ড আপডেট -->
+        <div class="admin-card">
+            <h4><i class="fa-solid fa-bullhorn"></i> নোটিশ বোর্ড আপডেট</h4>
+            <textarea id="admin-notice-input" placeholder="নতুন নোটিশ লিখুন..." style="width: 100%; padding: 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:white; resize:none; height: 60px; margin-bottom:10px;"></textarea>
+            <button class="btn-primary" onclick="updateAdminNotice()" style="margin-top: 0; padding: 10px; background: #38bdf8; color:#0f172a;">নোটিশ সেট করুন</button>
+        </div>
+
+        <!-- ৪. নতুন টাস্ক যোগ করুন -->
+        <div class="admin-card">
+            <h4><i class="fa-solid fa-plus"></i> নতুন টাস্ক যোগ করুন</h4>
+            <form onsubmit="addNewTask(event)">
+                <div style="margin-bottom: 10px;">
+                    <input type="text" id="new-task-title" placeholder="কাজের নাম (যেমন: YouTube Subscribe)" required style="width:100%; padding: 10px; border-radius:6px; border:1px solid #475569; background:#0f172a; color:white;">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <input type="number" id="new-task-reward" placeholder="পুরষ্কার (৳ ১০)" required style="width:100%; padding: 10px; border-radius:6px; border:1px solid #475569; background:#0f172a; color:white;">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <input type="text" id="new-task-link" placeholder="কাজের লিংক (https://...)" style="width:100%; padding: 10px; border-radius:6px; border:1px solid #475569; background:#0f172a; color:white;">
+                </div>
+                <button type="submit" class="btn-primary" style="background: #10b981; color: white; margin-top: 0; padding: 10px;">টাস্ক প্রকাশ করুন</button>
+            </form>
+        </div>
+
+        <!-- ৫. ইউজার রিকোয়েস্ট রিভিউ (নাম, নম্বর, মেথড, টাকা, ডেট ও থ্রি বাটন) -->
+        <div class="admin-card">
+            <h4><i class="fa-solid fa-list-check"></i> ইউজার রিকোয়েস্ট লিস্ট</h4>
+            <div id="admin-pending-tasks-list">
+                <p style="font-size: 13px; color: #94a3b8;">কোনো রিকোয়েস্ট নেই।</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ---------------- FIREBASE CONFIGURATION ---------------- //
+        const firebaseConfig = {
+            databaseURL: "https://family-earn-bd-10-default-rtdb.firebaseio.com"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentUser = null;
+
+        function openPasswordModal() {
+            document.getElementById('password-modal').style.display = 'flex';
+            document.getElementById('admin-pass-input').value = '';
+            document.getElementById('admin-pass-input').focus();
+        }
+
+        function closePasswordModal() {
+            document.getElementById('password-modal').style.display = 'none';
+        }
+
+        function checkAdminPassword() {
+            const pass = document.getElementById('admin-pass-input').value;
+            if (pass === "2274") {
+                closePasswordModal();
+                document.getElementById('admin-modal').style.display = 'block';
+                loadAdminData();
+            } else {
+                alert("ভুল পাসওয়ার্ড!");
+                document.getElementById('admin-pass-input').value = '';
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').style.display = 'none';
+        }
+
+        function togglePass(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+
+        function showLogin() {
+            hideErrors();
+            document.getElementById('welcome-page').style.display = 'none';
+            document.getElementById('signup-page').style.display = 'none';
+            document.getElementById('login-page').style.display = 'flex';
+        }
+
+        function showSignup() {
+            hideErrors();
+            document.getElementById('welcome-page').style.display = 'none';
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('signup-page').style.display = 'flex';
+        }
+
+        function hideErrors() {
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('signup-error').style.display = 'none';
+        }
+
+        // ---------------- SIGNUP (FIREBASE) ---------------- //
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const phone = document.getElementById('reg-phone').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+            const cpass = document.getElementById('reg-cpass').value;
+            const errorElement = document.getElementById('signup-error');
+
+            if (pass !== cpass) {
+                errorElement.innerText = "পাসওয়ার্ড দুটি মিলছে না!";
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            const cleanPhone = phone.replace(/[^0-9]/g, '');
+
+            db.ref('users/' + cleanPhone).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    errorElement.innerText = "এই নাম্বারে ইতিমধ্যে একটি একাউন্ট রয়েছে!";
+                    errorElement.style.display = 'block';
+                } else {
+                    const userData = {
+                        name: name,
+                        phone: cleanPhone,
+                        email: email,
+                        pass: pass,
+                        balance: 0,
+                        isBanned: false,
+                        avatar: 'https://via.placeholder.com/60',
+                        history: []
+                    };
+
+                    db.ref('users/' + cleanPhone).set(userData, (error) => {
+                        if (error) {
+                            alert("নিবন্ধন ব্যর্থ হয়েছে!");
+                        } else {
+                            alert("রেজিস্ট্রেশন সফল হয়েছে! এখন লগইন করুন।");
+                            showLogin();
+                        }
+                    });
+                }
+            });
+        }
+
+        // ---------------- LOGIN (FIREBASE) ---------------- //
+        function handleLogin(e) {
+            e.preventDefault();
+            const phone = document.getElementById('login-phone').value.trim();
+            const pass = document.getElementById('login-pass').value;
+            const errorElement = document.getElementById('login-error');
+
+            db.ref('users/' + phone).once('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    errorElement.innerText = "এই নাম্বারে কোনো একাউন্ট খুঁজে পাওয়া যায়নি!";
+                    errorElement.style.display = 'block';
+                    return;
+                }
+
+                const user = snapshot.val();
+
+                if (user.isBanned) {
+                    errorElement.innerText = "আপনার একাউন্টটি ব্যান করা হয়েছে!";
+                    errorElement.style.display = 'block';
+                    return;
+                }
+
+                if (user.pass === pass) {
+                    errorElement.style.display = 'none';
+                    currentUser = user;
+                    
+                    db.ref('users/' + phone).on('value', (snap) => {
+                        if(snap.exists()) {
+                            currentUser = snap.val();
+                            loadUserDataUI();
+                        }
+                    });
+
+                    document.getElementById('welcome-page').style.display = 'none';
+                    document.getElementById('signup-page').style.display = 'none';
+                    document.getElementById('login-page').style.display = 'none';
+                    document.getElementById('app-main').style.display = 'flex';
+                } else {
+                    errorElement.innerText = "ফোন নাম্বার অথবা পাসওয়ার্ড ভুল হয়েছে!";
+                    errorElement.style.display = 'block';
+                }
+            });
+        }
+
+        function loadUserDataUI() {
+            if (!currentUser) return;
+            document.getElementById('display-name').innerText = currentUser.name;
+            document.getElementById('display-phone').innerText = currentUser.phone;
+            document.getElementById('user-balance').innerText = '৳ ' + (currentUser.balance || 0).toFixed(2);
+            document.getElementById('user-avatar').src = currentUser.avatar || 'https://via.placeholder.com/60';
+
+            document.getElementById('prof-name').innerText = currentUser.name;
+            document.getElementById('prof-phone').innerText = currentUser.phone;
+            document.getElementById('prof-email').innerText = currentUser.email;
+            document.getElementById('prof-balance').innerText = '৳ ' + (currentUser.balance || 0).toFixed(2);
+
+            db.ref('app_notice').once('value', (snap) => {
+                if (snap.exists()) {
+                    document.getElementById('admin-notice-text').innerText = snap.val();
+                }
+            });
+
+            renderHistory();
+            renderUserTasks();
+        }
+
+        function uploadImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageBase64 = e.target.result;
+                    currentUser.avatar = imageBase64;
+                    document.getElementById('user-avatar').src = imageBase64;
+                    db.ref('users/' + currentUser.phone).update({ avatar: imageBase64 });
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function openWithdrawCard() {
+            const section = document.getElementById('withdraw-card-section');
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleGmailForm() {
+            const formCard = document.getElementById('gmail-form-card');
+            formCard.style.display = formCard.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function submitTask(e) {
+            e.preventDefault();
+            const gmail = document.getElementById('task-gmail-email').value;
+            const pass = document.getElementById('task-gmail-pass').value;
+            const imageInput = document.getElementById('task-proof-image');
+
+            if (!gmail || !pass) return;
+
+            if (imageInput.files && imageInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const proofImageBase64 = event.target.result;
+                    saveTaskSubmission(gmail, pass, proofImageBase64);
+                };
+                reader.readAsDataURL(imageInput.files[0]);
+            } else {
+                saveTaskSubmission(gmail, pass, '');
+            }
+        }
+
+        function saveTaskSubmission(gmail, pass, proofImage) {
+            const submissionRef = db.ref('admin_submissions').push();
+            const submissionId = submissionRef.key;
+            
+            const subData = {
+                id: submissionId,
+                userPhone: currentUser.phone,
+                userName: currentUser.name,
+                method: 'Gmail Task',
+                accountNumber: gmail,
+                amount: 5,
+                proofImage: proofImage,
+                date: new Date().toLocaleDateString('bn-BD') + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'pending',
+                type: 'task',
+                title: `জিমেইল জমা (${gmail})`
+            };
+
+            submissionRef.set(subData);
+
+            let historyList = currentUser.history || [];
+            historyList.push({
+                id: submissionId,
+                title: `জিমেইল জমা (${gmail})`,
+                date: subData.date,
+                status: 'পেন্ডিং (Pending)',
+                type: 'task'
+            });
+
+            db.ref('users/' + currentUser.phone).update({ history: historyList });
+
+            document.getElementById('task-gmail-email').value = '';
+            document.getElementById('task-gmail-pass').value = '';
+            document.getElementById('task-proof-image').value = '';
+            document.getElementById('gmail-form-card').style.display = 'none';
+
+            alert('আপনার জিমেইল ও প্রুফ সফলভাবে জমা হয়েছে!');
+        }
+
+        function handleWithdraw(e) {
+            e.preventDefault();
+            const method = document.getElementById('withdraw-method').value.toUpperCase();
+            const num = document.getElementById('withdraw-number').value.trim();
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const fee = 50;
+            const totalRequired = amount + fee;
+
+            if (amount < 500 || amount > 5000) {
+                alert('সর্বনিম্ন ৳ ৫০০ এবং সর্বোচ্চ ৳ ৫০০০ উইথড্র দেওয়া সম্ভব!');
+                return;
+            }
+
+            if ((currentUser.balance || 0) < totalRequired) {
+                alert(`পর্যাপ্ত ব্যালেন্স নেই! ৳ ${amount} তুলতে ৳ ৫০ ফি সহ মোট ৳ ${totalRequired} লাগবে।`);
+                return;
+            }
+
+            // ব্যালেন্স তাৎক্ষণিকভাবে কেটে নেওয়া হচ্ছে
+            const newBalance = currentUser.balance - totalRequired;
+            currentUser.balance = newBalance;
+            db.ref('users/' + currentUser.phone).update({ balance: newBalance });
+
+            const submissionRef = db.ref('admin_submissions').push();
+            const submissionId = submissionRef.key;
+
+            const currentDate = new Date().toLocaleDateString('bn-BD') + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            const withdrawRecord = {
+                id: submissionId,
+                userPhone: currentUser.phone,
+                userName: currentUser.name,
+                method: method,
+                accountNumber: num,
+                amount: amount,
+                fee: fee,
+                date: currentDate,
+                status: 'pending',
+                type: 'withdraw',
+                title: `উইথড্র (${method}: ${num}) - ৳ ${amount}`
+            };
+
+            submissionRef.set(withdrawRecord);
+
+            let historyList = currentUser.history || [];
+            historyList.push({
+                id: submissionId,
+                title: `উইথড্র (${method}: ${num}) - ৳ ${amount}`,
+                date: currentDate,
+                status: 'পেন্ডিং (Pending)',
+                type: 'withdraw'
+            });
+
+            db.ref('users/' + currentUser.phone).update({ history: historyList });
+
+            document.getElementById('withdraw-number').value = '';
+            document.getElementById('withdraw-amount').value = '';
+            document.getElementById('withdraw-card-section').style.display = 'none';
+
+            alert(`৳ ${amount} উইথড্র রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!`);
+        }
+
+        // ---------------- ADMIN PANEL FUNCTIONS ---------------- {
+        
+        function modifyUserBalance(actionType) {
+            const phone = document.getElementById('admin-bal-phone').value.trim();
+            const amount = parseFloat(document.getElementById('admin-bal-amount').value);
+
+            if (!phone || isNaN(amount) || amount <= 0) {
+                alert("দয়া করে সঠিক নাম্বার ও পরিমাণ দিন!");
+                return;
+            }
+
+            db.ref('users/' + phone).once('value', (snap) => {
+                if (!snap.exists()) {
+                    alert("ইউজার পাওয়া যায়নি!");
+                    return;
+                }
+
+                let userData = snap.val();
+                let currentBal = userData.balance || 0;
+                let historyList = userData.history || [];
+                let currentDate = new Date().toLocaleDateString('bn-BD');
+
+                if (actionType === 'add') {
+                    currentBal += amount;
+                    historyList.push({ title: `অ্যাডমিন কর্তৃক ব্যালেন্স যোগ`, date: currentDate, amount: amount, status: 'সফল (Added)', type: 'task' });
+                    alert(`৳ ${amount} যোগ করা হয়েছে!`);
+                } else {
+                    if (currentBal < amount) {
+                        alert("পর্যাপ্ত ব্যালেন্স নেই!");
+                        return;
+                    }
+                    currentBal -= amount;
+                    historyList.push({ title: `অ্যাডমিন কর্তৃক ব্যালেন্স কাটা`, date: currentDate, amount: amount, status: 'কর্তন (Deducted)', type: 'withdraw' });
+                    alert(`৳ ${amount} কেটে নেওয়া হয়েছে!`);
+                }
+
+                db.ref('users/' + phone).update({ balance: currentBal, history: historyList });
+                document.getElementById('admin-bal-phone').value = '';
+                document.getElementById('admin-bal-amount').value = '';
+            });
+        }
+
+        function toggleUserBanStatus(shouldBan) {
+            const phone = document.getElementById('admin-user-phone-input').value.trim();
+            if (!phone) return;
+            db.ref('users/' + phone).once('value', (snap) => {
+                if (!snap.exists()) { alert("ইউজার পাওয়া যায়নি!"); return; }
+                db.ref('users/' + phone).update({ isBanned: shouldBan });
+                alert(shouldBan ? "ইউজার ব্যান করা হয়েছে!" : "ইউজার আনব্যান করা হয়েছে!");
+                document.getElementById('admin-user-phone-input').value = '';
+            });
+        }
+
+        function updateAdminNotice() {
+            const noticeText = document.getElementById('admin-notice-input').value;
+            if (!noticeText) return;
+            db.ref('app_notice').set(noticeText, () => {
+                document.getElementById('admin-notice-text').innerText = noticeText;
+                alert('নোটিশ আপডেট হয়েছে!');
+            });
+        }
+
+        function addNewTask(e) {
+            e.preventDefault();
+            const title = document.getElementById('new-task-title').value;
+            const reward = parseFloat(document.getElementById('new-task-reward').value);
+            const link = document.getElementById('new-task-link').value.trim();
+
+            db.ref('admin_custom_tasks').push().set({ title, reward, link: link || '#' }, () => {
+                alert('নতুন টাস্ক যোগ হয়েছে!');
+                document.getElementById('new-task-title').value = '';
+                document.getElementById('new-task-reward').value = '';
+                document.getElementById('new-task-link').value = '';
+            });
+        }
+
+        function loadAdminData() {
+            const container = document.getElementById('admin-pending-tasks-list');
+            container.innerHTML = '<p style="font-size: 13px; color: #94a3b8;">লোড হচ্ছে...</p>';
+
+            db.ref('admin_submissions').on('value', (snapshot) => {
+                container.innerHTML = '';
+                if (!snapshot.exists()) {
+                    container.innerHTML = '<p style="font-size: 13px; color: #94a3b8;">কোনো রিকোয়েস্ট নেই।</p>';
+                    return;
+                }
+
+                snapshot.forEach((childSnap) => {
+                    const item = childSnap.val();
+                    const subKey = childSnap.key;
+
+                    const div = document.createElement('div');
+                    div.className = 'admin-submission-item';
+                    
+                    let imageHtml = item.proofImage ? `<p style="margin-top:6px;"><b>প্রুফ ছবি:</b><br><img src="${item.proofImage}" style="max-width:100%; max-height:130px; border-radius:6px; margin-top:4px; border:1px solid #475569;"></p>` : '';
+                    let statusColor = item.status === 'completed' ? '#10b981' : (item.status === 'cancelled' ? '#ef4444' : '#f59e0b');
+
+                    div.innerHTML = `
+                        <p>👤 <b>নাম:</b> <span style="color:#38bdf8;">${item.userName || 'N/A'}</span></p>
+                        <p>📞 <b>মোবাইল/উইথড্র নম্বর:</b> ${item.accountNumber || item.userPhone}</p>
+                        <p>💳 <b>মেথড:</b> ${item.method || 'General'}</p>
+                        <p>💵 <b>টাকার পরিমাণ:</b> ৳ ${item.amount || 5}</p>
+                        <p>🕒 <b>তারিখ ও সময়:</b> ${item.date}</p>
+                        ${imageHtml}
+                        <p style="margin-top:6px;"><b>স্ট্যাটাস:</b> <span style="color: ${statusColor}; font-weight: bold; text-transform: uppercase;">${item.status}</span></p>
+                        
+                        <div style="display: flex; gap: 6px; margin-top: 12px;">
+                            <button class="btn-admin-action" onclick="updateRequestStatus('${subKey}', '${item.userPhone}', 'completed', ${item.amount || 5}, '${item.type || 'task'}')" style="background: #10b981; color: white; flex: 1;">কমপ্লিট</button>
+                            <button class="btn-admin-action" onclick="updateRequestStatus('${subKey}', '${item.userPhone}', 'cancelled', ${item.amount || 5}, '${item.type || 'task'}')" style="background: #ef4444; color: white; flex: 1;">ক্যানসেল</button>
+                            <button class="btn-admin-action" onclick="updateRequestStatus('${subKey}', '${item.userPhone}', 'pending', ${item.amount || 5}, '${item.type || 'task'}')" style="background: #f59e0b; color: white; flex: 1;">পেন্ডিং</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        function updateRequestStatus(subKey, userPhone, newStatus, itemAmount, reqType) {
+            db.ref('admin_submissions/' + subKey).once('value', (snap) => {
+                if (!snap.exists()) return;
+                let subData = snap.val();
+                let oldStatus = subData.status;
+
+                db.ref('users/' + userPhone).once('value', (userSnap) => {
+                    if (userSnap.exists()) {
+                        let userData = userSnap.val();
+                        let currentBal = userData.balance || 0;
+                        let historyList = userData.history || [];
+
+                        if (reqType === 'withdraw') {
+                            let totalDeduction = itemAmount + 50; 
+                            if (oldStatus !== 'cancelled' && newStatus === 'cancelled') {
+                                currentBal += totalDeduction;
+                            } else if (oldStatus === 'cancelled' && (newStatus === 'completed' || newStatus === 'pending')) {
+                                if (currentBal < totalDeduction) {
+                                    alert("ইউজারের অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই!");
+                                    return;
+                                }
+                                currentBal -= totalDeduction;
+                            }
+                        } else if (reqType === 'task') {
+                            if (oldStatus !== 'completed' && newStatus === 'completed') {
+                                currentBal += itemAmount; 
+                            } else if (oldStatus === 'completed' && newStatus !== 'completed') {
+                                currentBal -= itemAmount; 
+                            }
+                        }
+
+                        db.ref('admin_submissions/' + subKey).update({ status: newStatus });
+
+                        historyList.forEach(h => {
+                            if (h.id === subKey) {
+                                if (newStatus === 'completed') h.status = 'সম্পন্ন (Completed)';
+                                else if (newStatus === 'cancelled') h.status = 'বাতিল (Cancelled)';
+                                else h.status = 'পেন্ডিং (Pending)';
+                            }
+                        });
+
+                        db.ref('users/' + userPhone).update({
+                            balance: currentBal,
+                            history: historyList
+                        });
+
+                        alert(`স্ট্যাটাস সফলভাবে '${newStatus}' করা হয়েছে!`);
+                    }
+                });
+            });
+        }
+
+        function renderUserTasks() {
+            const container = document.getElementById('dynamic-tasks-container');
+            container.innerHTML = '';
+
+            db.ref('admin_custom_tasks').on('value', (snapshot) => {
+                container.innerHTML = '';
+                if (!snapshot.exists()) {
+                    container.innerHTML = '<p style="font-size: 13px; color: #6b7280; text-align: center; margin-top: 20px;">কোনো টাস্ক নেই।</p>';
+                    return;
+                }
+
+                snapshot.forEach((childSnap) => {
+                    const t = childSnap.val();
+                    const card = document.createElement('div');
+                    card.className = 'task-card';
+                    card.style.textAlign = 'left';
+                    
+                    let linkButtonHtml = t.link && t.link !== '#' ? 
+                        `<a href="${t.link}" target="_blank" class="btn-primary" style="display: block; text-align: center; text-decoration: none; margin-top: 10px; padding: 10px; font-size: 14px;">কাজটি করুন <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` :
+                        `<button class="btn-primary" style="display: block; width: 100%; text-align: center; margin-top: 10px; padding: 10px; font-size: 14px; background: #6b7280; cursor: default;">চলমান কাজ</button>`;
+
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="font-size: 15px; color: #1f2937;">${t.title}</h4>
+                            <span style="color: #10b981; font-weight: bold; font-size: 13px;">৳ ${t.reward}</span>
+                        </div>
+                        ${linkButtonHtml}
+                    `;
+                    container.appendChild(card);
+                });
+            });
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history-list');
+            container.innerHTML = '';
+
+            if (!currentUser.history || currentUser.history.length === 0) {
+                container.innerHTML = '<p style="font-size: 13px; color: #9ca3af; text-align: center; margin-top: 30px;">কোনো রেকর্ড নেই।</p>';
+                return;
+            }
+
+            currentUser.history.slice().reverse().forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'history-item';
+                
+                let badgeClass = 'badge-pending';
+                if(item.status.includes('সম্পন্ন') || item.status.includes('Completed') || item.status.includes('Added')) badgeClass = 'badge-completed';
+                if(item.status.includes('বাতিল') || item.status.includes('Cancelled') || item.status.includes('Deducted')) badgeClass = 'badge-cancelled';
+
+                itemDiv.innerHTML = `
+                    <div>
+                        <strong style="font-size: 13px; color: #1f2937;">${item.title}</strong>
+                        <p style="font-size: 11px; color: #9ca3af; margin-top: 2px;">${item.date}</p>
+                    </div>
+                    <span class="badge ${badgeClass}">${item.status}</span>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        function switchTab(tabName, el) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('app-main').style.display = 'none';
+            showLogin();
+        }
+    </script>
+</body>
+</html>
